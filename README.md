@@ -1,90 +1,68 @@
-# Cornix + Prospector
+# Cornix + Prospector Scanner
 
-保存済みのVial配列を使うZMK設定です。Cornix左側を親機にする単体構成と、beekeeb Prospector（XIAO nRF52840）を親機にするドングル構成をビルドできます。
-
-Cornix単体構成：
+保存済みのVial配列をCornix左側に持たせ、Prospectorを状態表示専用にするZMK設定です。Prospectorがなくても、CornixからPCへUSBまたはBluetoothで入力できます。
 
 ```text
 Cornix右 ── Bluetooth ── Cornix左 ── USB / Bluetooth ── PC
+                             └── 状態を送信 ── Prospectorの画面
 ```
 
-ドングル構成：
+Prospectorはキー入力を中継しません。USBは給電に使用し、Cornixの電池残量・レイヤーなどを表示します。表示のためのペアリングは不要です。
 
-```text
-Cornix左 ── Bluetooth ──┐
-                       Prospector ── USB ── PC
-Cornix右 ── Bluetooth ──┘
-```
+## ファームウェア
 
-ドングル構成ではCornix単体からPCへのUSB/Bluetooth接続は利用できません。単体構成との自動切替はできず、切り替える場合は左側の書き換えと対象機器の接続情報リセットが必要です。
-
-## ビルド
-
-GitHub Actionsの **Build ZMK firmware** がpush・PR・手動実行でビルドします。
-成功した実行の **firmware** アーティファクトをダウンロードして展開してください。
+GitHub Actionsの **Build ZMK firmware** がPR・mainへのpush・手動実行でビルドします。成功した実行の **firmware** アーティファクトをダウンロードしてください。
 
 | ファイル | 書き込む機器 |
 | --- | --- |
-| `prospector_cornix.uf2` | ProspectorのXIAO nRF52840 |
-| `cornix_left_standalone.uf2` | Cornix左（単体構成の親機） |
-| `cornix_left_peripheral.uf2` | Cornix左（ドングル構成の子機） |
-| `cornix_right_peripheral.uf2` | Cornix右 |
+| `cornix_left_standalone.uf2` | Cornix左：配列とPCへの接続を担当 |
+| `cornix_right_peripheral.uf2` | Cornix右：左側へキー操作を送信 |
+| `prospector_scanner.uf2` | Prospector：状態表示専用 |
+| `cornix_settings_reset.uf2` | Cornix左右の設定リセット用（共通） |
 | `prospector_settings_reset.uf2` | Prospectorの設定リセット用 |
-| `cornix_settings_reset.uf2` | Cornix左右の設定リセット用（同じファイルを使用） |
 
-依存するZMK、Cornix v3.0.0、Prospectorモジュールとビルドworkflowはコミットを固定しています。
-ProspectorはZephyr 4.1対応の `feat/new-status-screens` を使用しています。
-Cornix v3.0.0に不足するZMK対応フラグは、ルートの `Kconfig` で修飾付きCornixターゲットかつNVS使用時に限り補っています。
+依存するZMK・Cornix v3.0.0・Prospector Scannerモジュールv2.2.3と再利用workflowは、コミットを固定しています。Cornix v3.0.0に不足するZMK対応フラグは、修飾付きCornixターゲットかつNVS使用時に限って補っています。
 
-## 書き込み前の確認
+## 受信機構成からの初回移行
 
-- 現在のキーマップを保存してください。このリポジトリの配列は、保存済みのVial設定から移植しています。詳細は [KEYMAP.md](KEYMAP.md) を参照してください。
-- Cornixの現在のファームウェアがRMK/VialかZMKか、UF2ブートローダーへ入れるかを確認してください。
-- Cornixはv3.0.0のno-SoftDevice配置（アプリ開始 `0x1000`）を使用します。ProspectorはXIAOの標準配置を使用し、no-SoftDevice用snippetを適用しません。
-- 上流の旧復旧ガイドにはSoftDevice復元の記述がありますが、現行Cornixの配置とは異なります。通常の書き込みに復旧用ファイルを混ぜず、ブートローダーに入れない場合は個別に確認してください。
-- リセット用UF2はBluetoothのペアリング情報やStudioで保存した設定を消します。通常のキーマップ更新では毎回使う必要はありません。
+現在の配列を保存し、機器ごとにファイルを確認して書き込んでください。設定リセットはBluetoothの接続情報とStudioで保存した設定を消します。
 
-## Cornix単体構成への書き込み
+1. ProspectorをUSBから外し、Cornix左右の電源を切ります。
+2. Cornixの片側をUSB接続し、RESETを素早く2回押してUF2ドライブを表示します。
+3. `cornix_settings_reset.uf2` をコピーし、自動再起動後にもう一度RESETを素早く2回押します。
+4. 左には `cornix_left_standalone.uf2`、右には `cornix_right_peripheral.uf2` をコピーします。反対側も手順2–4で移行します。
+5. 左右をONにして、左をPCへUSB接続します。左右のキーとノブの動作を確認します。
+6. 無線で使う場合は、左のUSBを外してPCのBluetooth設定から `Cornix` をペアリングします。以前の同名の登録が残っている場合は削除してから登録し直します。
+7. ProspectorをUF2モードにして `prospector_settings_reset.uf2` を書き込みます。再びUF2モードにして `prospector_scanner.uf2` を書き込みます。
+8. Cornixが動作中なら、Prospectorが送信された状態を検出して表示します。
 
-1. ProspectorをUSBから外します。
-2. Cornix左右をそれぞれUF2モードにし、`cornix_settings_reset.uf2` を書き込みます。
-3. 再度UF2モードにして、左に `cornix_left_standalone.uf2`、右に `cornix_right_peripheral.uf2` を書き込みます。
-4. 左右を再起動します。左をPCにUSBでつなぐか、PCのBluetooth設定で `Cornix` をペアリングします。
-5. 左右のキー、ノブ、レイヤー切替を確認します。
+Cornixはno-SoftDevice配置（アプリ開始 `0x1000`）、ProspectorはXIAOの標準配置（アプリ開始 `0x27000`）です。復旧用SoftDeviceや異なる機器用UF2を混ぜないでください。
 
-通常の配列更新は左の `cornix_left_standalone.uf2` だけを書き換えます。右の再書き込みや設定リセットは不要です。
+## 配列と普段の更新
 
-## ドングル構成の初回書き込み
+保存済み `cornix.vil` の10レイヤーを移植しています。詳しくは [KEYMAP.md](KEYMAP.md) を参照してください。
 
-現在のファームウェアとブートローダーが対応していることを確認してから行います。
+- 左親指、外側から：レイヤー3・Command・Enter
+- 右親指、内側から：Space・レイヤー1・レイヤー2
+- 左ノブ：音量、右ノブ：スクロール
+- Studio解除：右ノブを押しながら左上のTab
 
-1. 各機器をUSBで接続し、RESETを素早く2回押してUF2ドライブを表示します。
-2. Prospectorには `prospector_settings_reset.uf2`、Cornix左右には `cornix_settings_reset.uf2` をコピーします。
-3. 再び各機器をUF2モードにし、それぞれ対応する本番UF2をコピーします。
-4. Cornix左右の電源を切り、ProspectorをPCのUSBに接続します。
-5. 左側だけ電源を入れて接続を待ち、次に右側の電源を入れます。画面のバッテリー表示はペアリング順になるためです。
-6. 左右の入力、エンコーダー、レイヤー表示、バッテリー表示を確認します。
+`config/cornix.keymap` を編集してビルド後、**左の `cornix_left_standalone.uf2` だけ**を書き換えます。通常の配列変更では右側やProspectorの再書き込み、設定リセットは不要です。
 
-## キー配列と画面
+ZMK Studioを使う場合はCornix左側をUSB接続します。Studioで保存した配列はファームウェア内の配列より優先されます。
 
-`config/cornix.keymap` を編集すると、次回のActionsビルドへ反映されます。
-保存済みVial設定の10レイヤーを移植しています。左親指は外側からレイヤー3・Command・Enter、右親指は内側からSpace・レイヤー1・レイヤー2です。
-左エンコーダーは音量、右エンコーダーはスクロールです。各レイヤー、マクロ、元データとの差分は [KEYMAP.md](KEYMAP.md) を参照してください。
-通常のキーマップ変更時は、単体構成なら左側、ドングル構成ならProspectorだけを書き換えます。接続情報のリセットは不要です。
+## 画面と状態送信
 
-ZMK StudioをUSBで利用できます。使用中の親機（Cornix左またはProspector）を接続し、**右ノブを押しながら左上のTab**でロックを解除してください。
-Studioで保存した配列はファームウェア内の初期配列より優先されます。
+beekeebのXIAO nRF52840とWaveshare 1.69インチLCDに合わせ、タッチと照度センサーを無効化し、明るさ50%にしています。Scannerの標準画面を使い、10レイヤーを表示します。
 
-画面はClassic、明るさ50%固定です。beekeeb版に照度センサーはないため無効化しています。
-画面設定は `config/cornix_dongle_adapter.conf` にあります。タッチ操作は設定していません。
+`config/prospector_scanner.conf` が画面設定、`config/cornix_left_standalone.conf` がCornix側の状態送信設定です。状態送信は入力通信とは別なので、画面の更新に遅れがあってもキー入力はCornixからPCへ直接送られます。
 
 ## 参照元
 
 - [Cornix](https://github.com/hitsmaxft/zmk-keyboard-cornix)
-- [Prospector](https://github.com/carrefinho/prospector)
-- [ProspectorのZephyr 4.1対応モジュール](https://github.com/carrefinho/prospector-zmk-module/tree/feat/new-status-screens)
+- [Prospector Scanner](https://github.com/t-ogura/zmk-config-prospector)
+- [Scanner・状態送信モジュール](https://github.com/t-ogura/prospector-zmk-module)
+- [Prospectorハードウェア](https://github.com/carrefinho/prospector)
 - [beekeeb組立ガイド](https://docs.beekeeb.com/build-guide/prospector-zmk-dongle-photo-build-log-and-firmware)
-- [ZMKドングル設定](https://zmk.dev/docs/hardware-integration/dongle)
 
-`config/cornix.keymap` はCornixモジュール内のMITライセンスの標準キーマップから派生しています。
-該当するライセンスは `LICENSE` を参照してください。
+キーマップはCornixモジュールのMITライセンスの標準キーマップを元に、保存済みVial設定を移植しています。Scanner設定は上記Prospector Scannerの非タッチ構成を参考にしています。

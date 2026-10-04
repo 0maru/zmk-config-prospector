@@ -1,4 +1,0 @@
-// beekeeb版に存在しない照度センサーへのアクセスを無効化する。
-&apds9960 {
-    status = "disabled";
-};

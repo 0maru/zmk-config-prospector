@@ -1,28 +1,22 @@
 include:
-  - board: xiao_ble//zmk
-    shield: cornix_dongle_adapter prospector_adapter
-    snippet: studio-rpc-usb-uart
-    cmake-args: -DKEYMAP_FILE=../../config/cornix.keymap
-    artifact-name: prospector_cornix
-
-  # ドングルなしでUSB/Bluetooth接続する場合の左親機。
   - board: cornix_left//zmk
     snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO_LOCKING=y -DCONFIG_ZMK_STUDIO_LOCK_ON_DISCONNECT=y
+    cmake-args: -DEXTRA_CONF_FILE=../../config/cornix_left_standalone.conf
     artifact-name: cornix_left_standalone
-
-  - board: cornix_ph_left//zmk
-    artifact-name: cornix_left_peripheral
 
   - board: cornix_right//zmk
     artifact-name: cornix_right_peripheral
 
-  # リセット用UF2は接続情報と保存済み設定を消去する。
   - board: xiao_ble//zmk
-    shield: settings_reset
-    artifact-name: prospector_settings_reset
+    shield: prospector_scanner
+    artifact-name: prospector_scanner
 
+  # 構成変更時だけ使用し、通常の配列更新では使用しない。
   - board: cornix_right//zmk
     shield: settings_reset
     snippet: nrf52840-nosd
     artifact-name: cornix_settings_reset
+
+  - board: xiao_ble//zmk
+    shield: settings_reset
+    artifact-name: prospector_settings_reset

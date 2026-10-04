@@ -4,8 +4,8 @@ manifest:
       url-base: https://github.com/zmkfirmware
     - name: hitsmaxft
       url-base: https://github.com/hitsmaxft
-    - name: carrefinho
-      url-base: https://github.com/carrefinho
+    - name: prospector
+      url-base: https://github.com/t-ogura
   projects:
     # Zephyr 4.1対応版を固定し、再ビルド時の意図しない変更を防ぐ。
     - name: zmk
@@ -16,9 +16,10 @@ manifest:
     - name: zmk-keyboard-cornix
       remote: hitsmaxft
       revision: ee80f2475b4310e761f5f271371e41172db8b5ca
-    # feat/new-status-screensのZephyr 4.1対応版。
+    # Prospector Scanner・状態送信モジュール v2.2.3。
     - name: prospector-zmk-module
-      remote: carrefinho
-      revision: ed98221f3b52b7066dbb10ba3af8a29150b93a5a
+      remote: prospector
+      revision: 72a71aeea816eb0f86ffc5b108b267076ce5f0af
+      path: modules/prospector-zmk-module
   self:
     path: config
