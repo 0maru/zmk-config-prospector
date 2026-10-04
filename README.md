@@ -1,6 +1,14 @@
 # Cornix + Prospector
 
-beekeeb Prospector（XIAO nRF52840）を親機、Cornixの左右を子機として使うZMK設定です。
+保存済みのVial配列を使うZMK設定です。Cornix左側を親機にする単体構成と、beekeeb Prospector（XIAO nRF52840）を親機にするドングル構成をビルドできます。
+
+Cornix単体構成：
+
+```text
+Cornix右 ── Bluetooth ── Cornix左 ── USB / Bluetooth ── PC
+```
+
+ドングル構成：
 
 ```text
 Cornix左 ── Bluetooth ──┐
@@ -8,7 +16,7 @@ Cornix左 ── Bluetooth ──┐
 Cornix右 ── Bluetooth ──┘
 ```
 
-この構成では、Cornix単体からPCへのUSB/Bluetooth接続は利用できません。
+ドングル構成ではCornix単体からPCへのUSB/Bluetooth接続は利用できません。単体構成との自動切替はできず、切り替える場合は左側の書き換えと対象機器の接続情報リセットが必要です。
 
 ## ビルド
 
@@ -18,7 +26,8 @@ GitHub Actionsの **Build ZMK firmware** がpush・PR・手動実行でビルド
 | ファイル | 書き込む機器 |
 | --- | --- |
 | `prospector_cornix.uf2` | ProspectorのXIAO nRF52840 |
-| `cornix_left_peripheral.uf2` | Cornix左 |
+| `cornix_left_standalone.uf2` | Cornix左（単体構成の親機） |
+| `cornix_left_peripheral.uf2` | Cornix左（ドングル構成の子機） |
 | `cornix_right_peripheral.uf2` | Cornix右 |
 | `prospector_settings_reset.uf2` | Prospectorの設定リセット用 |
 | `cornix_settings_reset.uf2` | Cornix左右の設定リセット用（同じファイルを使用） |
@@ -35,7 +44,17 @@ Cornix v3.0.0に不足するZMK対応フラグは、ルートの `Kconfig` で�
 - 上流の旧復旧ガイドにはSoftDevice復元の記述がありますが、現行Cornixの配置とは異なります。通常の書き込みに復旧用ファイルを混ぜず、ブートローダーに入れない場合は個別に確認してください。
 - リセット用UF2はBluetoothのペアリング情報やStudioで保存した設定を消します。通常のキーマップ更新では毎回使う必要はありません。
 
-## 初回の書き込み
+## Cornix単体構成への書き込み
+
+1. ProspectorをUSBから外します。
+2. Cornix左右をそれぞれUF2モードにし、`cornix_settings_reset.uf2` を書き込みます。
+3. 再度UF2モードにして、左に `cornix_left_standalone.uf2`、右に `cornix_right_peripheral.uf2` を書き込みます。
+4. 左右を再起動します。左をPCにUSBでつなぐか、PCのBluetooth設定で `Cornix` をペアリングします。
+5. 左右のキー、ノブ、レイヤー切替を確認します。
+
+通常の配列更新は左の `cornix_left_standalone.uf2` だけを書き換えます。右の再書き込みや設定リセットは不要です。
+
+## ドングル構成の初回書き込み
 
 現在のファームウェアとブートローダーが対応していることを確認してから行います。
 
@@ -51,9 +70,9 @@ Cornix v3.0.0に不足するZMK対応フラグは、ルートの `Kconfig` で�
 `config/cornix.keymap` を編集すると、次回のActionsビルドへ反映されます。
 保存済みVial設定の10レイヤーを移植しています。左親指は外側からレイヤー3・Command・Enter、右親指は内側からSpace・レイヤー1・レイヤー2です。
 左エンコーダーは音量、右エンコーダーはスクロールです。各レイヤー、マクロ、元データとの差分は [KEYMAP.md](KEYMAP.md) を参照してください。
-キーマップ変更時はドングルの `prospector_cornix.uf2` だけを書き換えます。左右の再書き込みや設定リセットは不要です。
+通常のキーマップ変更時は、単体構成なら左側、ドングル構成ならProspectorだけを書き換えます。接続情報のリセットは不要です。
 
-ZMK StudioをUSBで利用できます。Prospectorを接続し、**右ノブを押しながら左上のTab**でロックを解除してください。
+ZMK StudioをUSBで利用できます。使用中の親機（Cornix左またはProspector）を接続し、**右ノブを押しながら左上のTab**でロックを解除してください。
 Studioで保存した配列はファームウェア内の初期配列より優先されます。
 
 画面はClassic、明るさ50%固定です。beekeeb版に照度センサーはないため無効化しています。
