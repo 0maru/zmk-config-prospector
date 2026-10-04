@@ -25,6 +25,7 @@ GitHub Actionsの **Build ZMK firmware** がpush・PR・手動実行でビルド
 
 依存するZMK、Cornix v3.0.0、Prospectorモジュールとビルドworkflowはコミットを固定しています。
 ProspectorはZephyr 4.1対応の `feat/new-status-screens` を使用しています。
+Cornix v3.0.0に不足するZMK対応フラグは、ルートの `Kconfig` で修飾付きCornixターゲットかつNVS使用時に限り補っています。
 
 ## 書き込み前の確認
 
