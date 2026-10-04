@@ -1,0 +1,22 @@
+include:
+  - board: xiao_ble//zmk
+    shield: cornix_dongle_adapter prospector_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DKEYMAP_FILE=../../config/cornix.keymap
+    artifact-name: prospector_cornix
+
+  - board: cornix_ph_left//zmk
+    artifact-name: cornix_left_peripheral
+
+  - board: cornix_right//zmk
+    artifact-name: cornix_right_peripheral
+
+  # リセット用UF2は接続情報と保存済み設定を消去する。
+  - board: xiao_ble//zmk
+    shield: settings_reset
+    artifact-name: prospector_settings_reset
+
+  - board: cornix_right//zmk
+    shield: settings_reset
+    snippet: nrf52840-nosd
+    artifact-name: cornix_settings_reset

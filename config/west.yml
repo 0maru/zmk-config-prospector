@@ -1,0 +1,24 @@
+manifest:
+  remotes:
+    - name: zmkfirmware
+      url-base: https://github.com/zmkfirmware
+    - name: hitsmaxft
+      url-base: https://github.com/hitsmaxft
+    - name: carrefinho
+      url-base: https://github.com/carrefinho
+  projects:
+    # Zephyr 4.1対応版を固定し、再ビルド時の意図しない変更を防ぐ。
+    - name: zmk
+      remote: zmkfirmware
+      revision: 5b51501fead672c41b5cfb396f3dafe0894bf4e9
+      import: app/west.yml
+    # Cornix v3.0.0。
+    - name: zmk-keyboard-cornix
+      remote: hitsmaxft
+      revision: ee80f2475b4310e761f5f271371e41172db8b5ca
+    # feat/new-status-screensのZephyr 4.1対応版。
+    - name: prospector-zmk-module
+      remote: carrefinho
+      revision: ed98221f3b52b7066dbb10ba3af8a29150b93a5a
+  self:
+    path: config
