@@ -1,0 +1,4 @@
+# Cornix v3.0.0はZMK用の保存領域・ブートローダーを定義するが、対応フラグが未設定。
+# 修飾付きのCornixターゲットでNVSを使用する場合に限って補う。
+config ZMK_BOARD_COMPAT
+    default y if (BOARD_CORNIX_LEFT_NRF52840_ZMK || BOARD_CORNIX_RIGHT_NRF52840_ZMK) && SETTINGS_NVS

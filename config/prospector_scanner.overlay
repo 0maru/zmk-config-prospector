@@ -1,0 +1,8 @@
+// beekeebの非タッチ版には、タッチ・照度センサーがない。
+&touch_sensor {
+    status = "disabled";
+};
+
+&apds9960 {
+    status = "disabled";
+};
