@@ -7,16 +7,8 @@ include:
   - board: cornix_right//zmk
     artifact-name: cornix_right_peripheral
 
-  - board: xiao_ble//zmk
-    shield: prospector_scanner
-    artifact-name: prospector_scanner
-
   # 構成変更時だけ使用し、通常の配列更新では使用しない。
   - board: cornix_right//zmk
     shield: settings_reset
     snippet: nrf52840-nosd
     artifact-name: cornix_settings_reset
-
-  - board: xiao_ble//zmk
-    shield: settings_reset
-    artifact-name: prospector_settings_reset
